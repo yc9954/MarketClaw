@@ -1,159 +1,251 @@
-<div align="center">
-  <img src="docs/assets/marketclaw-lobster.png" alt="MarketClaw lobster mascot with a Genspark laptop" width="180" />
+<p align="center">
+  <img src="docs/assets/marketclaw-lobster.png" alt="MarketClaw lobster mascot with a Genspark laptop" width="150" />
+</p>
 
-  # MarketClaw
+<h1 align="center">MarketClaw</h1>
 
-  **Make your next marketing decision with evidence, not guesses.**
+<p align="center">
+  <a href="https://github.com/yc9954/MarketClaw/actions/workflows/ci.yml"><img src="https://github.com/yc9954/MarketClaw/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <img src="https://img.shields.io/badge/Playwright-real%20browser%20evidence-0F43F3?style=flat" alt="Playwright real browser evidence" />
+  <img src="https://img.shields.io/badge/Vue%203%20%C2%B7%20Vite%207%20%C2%B7%20Express%204-0F43F3?style=flat" alt="Vue 3, Vite 7, Express 4" />
+  <img src="https://img.shields.io/badge/Node-%E2%89%A5%2020-4493F8?style=flat" alt="Node 20 or newer" />
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-08C?style=flat" alt="AGPL-3.0" /></a>
+</p>
 
-  MarketClaw is an open-source, locally run web app that inspects a real website, replays navigation paths from a recorded HAR file, and turns observed issues into actionable recommendations.
-</div>
+<p align="center">
+  <strong>Make your next marketing decision with evidence, not guesses.</strong><br/>
+  MarketClaw is a locally run web app that opens a real website in Playwright Chromium, records a HAR and a full-page<br/>
+  screenshot, replays three visitor paths from that recording, and turns what it observed into a report of findings,<br/>
+  each with the evidence behind it and a suggested next action. It never invents conversion rates or revenue.
+</p>
 
-![MarketClaw home screen](docs/screenshots/home.png)
+<h3 align="center"><a href="#getting-started"><ins>Getting started</ins></a></h3>
 
-## What it does
+<p align="center">
+  <img src="docs/screenshots/home.png" alt="MarketClaw home screen: the six-step pipeline in the sidebar, the URL input, pipeline config and recent runs" width="960" />
+</p>
 
-Enter a website URL to run this workflow:
+## Features
 
-1. **Inspect pages in a real browser.** Playwright Chromium opens the landing page and follows same-origin links, inspecting up to four pages by default. It collects titles, meta descriptions, H1/H2 headings, visible calls to action or standalone prompt inputs, links, form field counts, and HTTP status codes.
-2. **Save visual and network evidence.** MarketClaw stores a full-page PNG of the landing page and a HAR archive under `data/runs/<run ID>/`. It blocks requests to a defined set of analytics and advertising domains and removes common tracking query parameters.
-3. **Replay read-only visitor paths.** Three paths look for links relevant to a first-time visitor, a pricing evaluator, and someone preparing to contact the business. The browser replays navigation from the recorded HAR without submitting forms or making purchases.
-4. **Produce an evidence-based report.** Rules identify missing metadata or H1 headings, a missing above-the-fold CTA, long forms, error pages, and failed requests. Every finding includes the observation and a suggested next action. The app does not invent conversion rates or revenue forecasts.
+<table>
+<tr>
+<td width="50%" valign="middle">
 
-![Report generated from a real demo run](docs/screenshots/report.png)
+### One report, four numbers, every finding traceable
 
-This report was generated from the public [Genspark homepage](https://www.genspark.ai/) on September 27, 2026. MarketClaw inspected four pages, found one primary interaction in the initial viewport, and blocked eight requests matching its tracker list. None of the three preset paths found a matching destination link in Genspark's workspace interface (0/3); that does not indicate a problem with Genspark. Counts and page content may change.
+The integrated report shows pages inspected, paths replayed, above-the-fold CTAs and tracking requests blocked, next to the landing page as the browser actually saw it and the list of improvement findings.
 
-Use **HAR Capture** in the sidebar to inspect the captured page and page inventory. Use **Improvement Feedback** to read each finding's evidence and recommendation.
+The report shown here came from a real run against the public [Genspark homepage](https://www.genspark.ai/) on 27 September 2026: four pages inspected, one primary interaction visible in the initial viewport, eight tracker requests blocked, and none of the three preset paths found a matching link in Genspark's workspace interface (0/3), which is not a problem with Genspark. Counts and page content change over time.
 
-![Captured page and page inventory](docs/screenshots/capture.png)
+</td>
+<td width="50%">
+  <img src="docs/screenshots/report.png" alt="Integrated report for www.genspark.ai: evidence flow, four metric cards, the captured landing page and the findings list" width="100%" />
+</td>
+</tr>
+<tr>
+<td width="50%" valign="middle">
 
-![Evidence-based improvement feedback](docs/screenshots/feedback.png)
+### Inspect pages in a real browser
 
-### Official Genspark UI
+Playwright Chromium opens the landing page at 1440 × 900 and follows same-origin links, up to four pages by default (eight at most). For each page it records the title, meta description, H1/H2 headings, visible calls to action or standalone prompt inputs, links, form field counts and the HTTP status.
 
-This is the actual public Genspark workspace as captured by MarketClaw in a separate, signed-out browser session. It is an observed screenshot of the official site, not a recreated page or a demo mockup.
+The **HAR Capture** view shows the full-page PNG and the inventory of pages it visited.
 
-![Official Genspark workspace captured by MarketClaw](docs/screenshots/genspark-site.png)
+</td>
+<td width="50%">
+  <img src="docs/screenshots/capture.png" alt="Browser capture view: the full-page screenshot of the Genspark landing page and the inspected-pages list with HTTP status and CTA count" width="100%" />
+</td>
+</tr>
+<tr>
+<td width="50%" valign="middle">
 
-## Quick start
+### Findings with evidence and a next step
 
-**Requirements:** Node.js 20 or newer, npm, and an environment where Playwright can install Chromium. On macOS, you can set `BROWSER_CHANNEL=chrome` to use an existing Google Chrome installation.
+Rules in `analyze.js` flag a missing meta description or H1, no CTA in the initial viewport, pages that errored or returned 4xx/5xx, forms with more than five fields, and failed network requests. Each finding carries the observation that triggered it and one concrete action.
 
-~~~bash
+If nothing trips, the report says so, states how many pages were explored and how many preset paths reached their target, and suggests checking paths that match the site's real visit purposes.
+
+</td>
+<td width="50%">
+  <img src="docs/screenshots/feedback.png" alt="Improvement feedback view: one finding with its evidence line and suggestion" width="100%" />
+</td>
+</tr>
+<tr>
+<td width="50%" valign="middle">
+
+### The page as the browser saw it
+
+This is the public Genspark workspace as captured by MarketClaw in a separate, signed-out browser session: an observed screenshot of the official site, not a recreated page or a mockup. Every run keeps its own full-page PNG next to the HAR.
+
+</td>
+<td width="50%">
+  <img src="docs/screenshots/genspark-site.png" alt="The Genspark AI workspace landing page as captured by MarketClaw" width="100%" />
+</td>
+</tr>
+</table>
+
+**Also included**
+
+- **Read-only path replay.** Three visitor purposes (first-time visitor, pricing evaluator, someone about to contact the business) are replayed from the recorded HAR in a fresh browser context. No forms are submitted, no accounts created, no purchases made.
+- **Tracker blocking and URL cleaning.** Requests to a built-in list of analytics and advertising domains are blocked, and common tracking query parameters are stripped before capture.
+- **Local evidence store.** Every run writes its JSON result, PNG and HAR to `data/runs/<run id>/` (git-ignored). Runs reopen from the home screen.
+- **A local fixture site.** `demo-site/` is a small Fieldnote landing site (home, features, pricing, contact) that the integration test runs against, so CI is repeatable without touching a live site.
+- **Korean UI.** All screens, findings and progress messages are written in Korean; the language badge in the header is display-only.
+
+---
+
+## How it works
+
+```text
+Vue UI (web/) ──POST /api/runs──▶ Express API (server/src/index.js)
+                                     │  one run at a time, progress events per run
+                                     ▼
+                              browser.js
+                                ├─ URL + private-network validation
+                                ├─ Playwright Chromium (headless by default), 1440×900, recordHar, tracker routes blocked
+                                ├─ landing page + same-origin crawl (MAX_PAGES)
+                                ├─ full-page PNG + HAR → data/runs/<id>/
+                                └─ offline replay of 3 visitor paths from the HAR
+                                     ▼
+                              analyze.js  ── rule-based findings ──▶ JSON result ──▶ GET /api/runs/:id ──▶ report view
+```
+
+1. **Submit.** The home screen posts `{ "url": "https://example.com" }`. Only HTTP(S) URLs are accepted; local and private-network targets are rejected unless `ALLOW_PRIVATE_TARGETS=1`, and cross-origin redirects are treated as errors.
+2. **Capture.** A separate browser context (never your signed-in browser) records a HAR with embedded content, blocks known tracking hosts, and inspects the landing page plus same-origin links.
+3. **Replay.** A second context replays the three purpose-driven paths from the HAR, counting which ones reached their target.
+4. **Analyze and store.** `analyze.js` turns page properties, network failures and replay results into findings. The result is written to `data/runs/` and streamed to the UI as progress events.
+
+| Request | Description |
+| --- | --- |
+| `GET /api/health` | Service health. |
+| `POST /api/runs` | Start an asynchronous run; returns a run id. |
+| `GET /api/runs` | List runs, newest first. |
+| `GET /api/runs/:id` | Progress events and the report. |
+| `GET /api/runs/:id/screenshot` | The landing-page PNG of a completed run. |
+
+If the server restarts mid-run, that run is marked `interrupted`; start a new one.
+
+---
+
+## Tech stack
+
+<p>
+  <kbd>Vue&nbsp;3.5</kbd> &nbsp; <kbd>vue-router&nbsp;4</kbd> &nbsp; <kbd>Vite&nbsp;7</kbd> &nbsp; <kbd>Phosphor&nbsp;icons</kbd> &nbsp;
+  <kbd>Node&nbsp;≥&nbsp;20</kbd> &nbsp; <kbd>Express&nbsp;4</kbd> &nbsp; <kbd>Playwright&nbsp;1.58</kbd> &nbsp; <kbd>dotenv</kbd> &nbsp; <kbd>npm&nbsp;workspaces</kbd> &nbsp; <kbd>node:test</kbd>
+</p>
+
+---
+
+## Getting started
+
+**Prerequisites**
+
+- Node.js 20 or newer and npm.
+- An environment where Playwright can install Chromium. On macOS you may set `BROWSER_CHANNEL=chrome` to use an installed Google Chrome instead.
+
+```bash
 git clone https://github.com/yc9954/MarketClaw.git
 cd MarketClaw
 npm ci
 npx playwright install chromium
 cp .env.example .env
-npm run dev
-~~~
+npm run dev            # Vue dev server on :3000 + API on :4000, stopped together
+```
 
-Open `http://127.0.0.1:3000` and enter a public website URL. The API runs at `http://127.0.0.1:4000` by default. The command starts both servers and stops them together.
+Open <http://127.0.0.1:3000> and enter a public website URL.
 
-### Analyze the public Genspark site
+**Analyze a site that blocks headless browsers.** Genspark's security checks may reject an automated headless browser; the screenshots above were captured on macOS with an installed Chrome in visible mode:
 
-Genspark's security checks may reject an automated headless browser. The screenshot above was captured on macOS with an installed Chrome browser in visible mode:
-
-~~~bash
+```bash
 BROWSER_CHANNEL=chrome BROWSER_HEADLESS=0 PAGE_SETTLE_MS=5000 npm run dev
-~~~
+```
 
-Enter `https://www.genspark.ai/` in MarketClaw. A Chrome window opens while the run is active. Site security checks and the visible page can vary by machine and session. The command uses macOS/Linux shell syntax.
+A Chrome window opens while the run is active. Site security checks and the visible page can vary by machine and session.
 
-### Build and run with one server
+**Try the local fixture:** `npm run dev:demo` starts `demo-site/` as well and allows private-network targets for that process; then enter `http://127.0.0.1:4175/` in the app. (Both commands use macOS/Linux shell syntax.)
 
-~~~bash
-npm run build
-npm start
-~~~
+**Single-server build:**
 
-Express serves both the built Vue app and API at `http://127.0.0.1:4000`. You can change the bind address and port with `HOST` and `PORT` in `.env`. Add authentication, access controls, and request limits before binding the app to a public network interface.
+```bash
+npm run build          # vite build → web/dist
+npm start              # Express serves the built UI and the API on :4000
+```
 
-### Test
-
-~~~bash
-npm test
-~~~
-
-The integration test builds the UI, starts a local fixture server from `demo-site/`, and checks real browser capture, HAR replay, findings, PNG delivery, opening a result from the home screen, and the original MarketClaw visual layout. The fixture makes CI repeatable; the screenshots above use the actual Genspark site. GitHub Actions runs the same test. Leave `BROWSER_CHANNEL` empty to use Playwright's installed Chromium.
-
-## Reading the report
-
-| Metric | Meaning |
-| --- | --- |
-| Pages inspected | Same-origin pages the browser attempted to open, including pages that returned errors. |
-| Paths replayed | Visitor-purpose paths that reached their target from the recorded HAR, out of all attempted paths. |
-| Above-the-fold CTAs | Action elements or standalone prompt inputs visible in the initial 1440 × 900 viewport. Detection is heuristic and may not perfectly distinguish CTAs from navigation. |
-| Tracking requests blocked | Requests matching the built-in list of analytics and advertising domains. This is not comprehensive tracker detection. |
-| Improvement findings | Rule-based checks of captured page properties and errors, intended to guide the next experiment. |
-
-Check the captured page against the report before applying a recommendation. Path replay does **not** simulate real users or conversions. It does **not** submit forms, create accounts, or complete purchases.
-
-## Repository structure
-
-~~~text
-MarketClaw/
-├── server/
-│   ├── src/
-│   │   ├── index.js       # API, job queue, local storage, built UI serving
-│   │   ├── browser.js     # URL checks, browser capture, offline HAR replay
-│   │   ├── analyze.js     # Turns observed signals into recommendations
-│   │   └── demo.js        # Bundled demo-site server
-│   └── test/              # Browser integration test
-├── web/src/               # Vue URL input, progress, and report screens
-├── demo-site/             # Local fixture for integration tests
-├── docs/assets/           # Mascot artwork
-├── docs/screenshots/      # Screenshots from actual runs
-├── data/runs/             # Local run results (excluded from Git)
-└── .github/workflows/ci.yml
-~~~
-
-~~~mermaid
-flowchart LR
-  A[Vue UI] -->|POST URL| B[Express API]
-  B --> C[URL and network validation]
-  C --> D[Playwright capture]
-  D --> E[PNG, HAR, page data]
-  E --> F[Offline HAR path replay]
-  F --> G[Rule-based analysis]
-  G --> H[Local JSON result]
-  H --> A
-~~~
-
-### API
-
-| Request | Description |
-| --- | --- |
-| `GET /api/health` | Service health. |
-| `POST /api/runs` | Start an asynchronous run with `{ "url": "https://example.com" }`. Returns a run ID. |
-| `GET /api/runs` | List runs, newest first. |
-| `GET /api/runs/:id` | Get progress events and the report. |
-| `GET /api/runs/:id/screenshot` | Get the completed run's landing-page PNG. |
-
-The server processes one run at a time. If it restarts during a run, that run is marked `interrupted` and you can start a new one. JSON results and HAR archives remain under `data/runs/` and are excluded from Git.
-
-## Configuration
+| Process | Port | Notes |
+| --- | --- | --- |
+| Vue dev server (`npm run dev -w web`) | `3000` | bound to `127.0.0.1` |
+| Express API + built UI (`npm start`) | `4000` | `HOST` / `PORT` |
+| Bundled demo site (`npm run demo:site`) | `4175` | `DEMO_PORT` |
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `HOST` | `127.0.0.1` | API bind address. |
 | `PORT` | `4000` | API and built-UI port. |
-| `BROWSER_CHANNEL` | Empty | Use Playwright-installed Chromium; set to `chrome` for installed Google Chrome. |
-| `BROWSER_HEADLESS` | `1` | Set to `0` to open a visible browser window. |
-| `PAGE_SETTLE_MS` | `750` | Wait after each page's DOM loads before extracting content and taking a screenshot; maximum 10,000 ms. |
-| `MAX_PAGES` | `4` | Same-origin pages inspected per run; maximum 8. |
-| `ALLOW_PRIVATE_TARGETS` | `0` | Allow local and private-network URLs. Use only for the bundled demo or tests. |
-| `DATA_DIR` | `data/runs` | Directory for run results. |
+| `BROWSER_CHANNEL` | empty | Empty uses Playwright's Chromium; `chrome` uses installed Google Chrome. |
+| `BROWSER_HEADLESS` | `1` | Set to `0` to open a visible browser window during the run. |
+| `PAGE_SETTLE_MS` | `750` | Wait after `domcontentloaded` before extracting a page (0–10000). |
+| `MAX_PAGES` | `4` | Same-origin pages inspected per run; capped at 8. |
+| `ALLOW_PRIVATE_TARGETS` | `0` | Allow local and private-network URLs. Only for the local fixture and tests. |
+| `DATA_DIR` | `data/runs` | Where run results are written. |
 | `DEMO_PORT` | `4175` | Bundled demo-site port. |
 
-## Data, security, and limitations
+---
 
-- The API binds to loopback by default and has no authentication. Add authentication and rate limits before exposing it beyond your machine.
-- Input accepts HTTP(S) URLs only. Local and private-network targets are blocked by default, as are cross-origin page navigations caused by redirects.
-- A HAR can contain response bodies, URLs, and sometimes cookies or authorization-related information from the visited site. MarketClaw uses a separate browser context rather than your signed-in personal browser, but keep `data/runs/` private and never commit it to a public repository.
-- JavaScript errors, bot protection, login requirements, and network conditions can cause pages or replay paths to fail. Some sites, including Genspark in our test environment, required a visible browser. Inspection is limited to four pages by default, and the limit is configurable.
-- This release focuses on observing websites and suggesting improvements. It does not measure real-user behavior, visitor counts, conversion rates, or revenue.
+## Building and testing
+
+```bash
+npm test               # builds the UI, then node --test server/test/*.test.js
+```
+
+The integration test starts a local fixture server from `demo-site/` and checks real browser capture, HAR replay, findings, PNG delivery, opening a result from the home screen, and the visual layout. [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs the same test on Node 22 with `BROWSER_CHANNEL=chromium`.
+
+---
+
+## Reading the report
+
+| Metric | Meaning |
+| --- | --- |
+| Pages inspected | Same-origin pages the browser attempted to open, including ones that returned errors. |
+| Paths replayed | Visitor-purpose paths that reached their target from the HAR, out of all attempted. |
+| Above-the-fold CTAs | Action elements or standalone prompt inputs visible in the initial 1440 × 900 viewport. Heuristic; may not perfectly separate CTAs from navigation. |
+| Tracking requests blocked | Requests matching the built-in analytics/advertising domain list. Not comprehensive tracker detection. |
+| Improvement findings | Rule-based checks of captured page properties and errors, meant to guide the next experiment. |
+
+Check the captured page against the report before acting on a recommendation.
+
+---
+
+## Repository structure
+
+| Path | What lives there |
+| --- | --- |
+| `server/src/index.js` | Express API, in-memory job queue (one run at a time), local storage under `data/runs/`, static serving of the built UI. |
+| `server/src/browser.js` | URL checks, Playwright capture (HAR, PNG, page inventory, tracker blocking), offline HAR path replay. |
+| `server/src/analyze.js` | The finding rules. |
+| `server/src/demo.js` | Static server for the bundled demo site. |
+| `server/test/integration.test.js` | End-to-end test against the demo site. |
+| `web/src/` | Vue app: `views/Home.vue` (URL input, pipeline, recent runs) and `views/Report.vue` (report, capture, replay, feedback tabs). |
+| `demo-site/` | Local fixture for the integration test: `index`, `features`, `pricing`, `contact`. |
+| `docs/screenshots/`, `docs/assets/` | Screenshots from an actual Genspark run; the mascot artwork. |
+| `data/runs/` | Local run results (git-ignored). |
+| `.env.example`, `.github/workflows/ci.yml` | Configuration defaults and CI. |
+
+---
+
+## Project status
+
+**Working today.** Everything above: capture, tracker blocking, HAR replay of three paths, rule-based findings, PNG/HAR/JSON storage, run history, the Korean UI, and a CI-backed integration test. Version 1.0.0.
+
+**Security posture.** The API binds to loopback and has no authentication, rate limiting or access control; add those before exposing it beyond your machine. A HAR can contain response bodies, URLs and sometimes cookies or authorization data from the visited site. MarketClaw uses its own browser context, not your signed-in browser, but keep `data/runs/` private and never commit it.
+
+**Known limitations.** JavaScript errors, bot protection, login walls and network conditions can make pages or replay paths fail; some sites only load in a visible (`BROWSER_HEADLESS=0`) installed Chrome. CTA and tracker detection are heuristics. The server processes a single run at a time; on start it reloads previous runs from `data/runs/` and marks any that were in progress as `interrupted`.
+
+**Out of scope.** Real-user behaviour, visitor counts, conversion rates or revenue. MarketClaw observes a site and suggests the next experiment; it does not measure outcomes.
+
+---
 
 ## Credits and license
 
-MarketClaw grew out of an experiment based on [MiroFish](https://github.com/666ghj/MiroFish), with a redesigned scope and implementation. The code and documentation are distributed under the repository's [AGPL-3.0 license](LICENSE). The lobster illustration was created for this project. The Genspark name and mark shown in the illustration belong to their respective owner. MarketClaw is not an official Genspark or OpenClaw product.
+MarketClaw grew out of an experiment based on [MiroFish](https://github.com/666ghj/MiroFish), with a redesigned scope and implementation. The lobster illustration was created for this project; the Genspark name and mark shown in it belong to their respective owner, and MarketClaw is not an official Genspark or OpenClaw product.
+
+Code and documentation are distributed under the [AGPL-3.0](LICENSE).
