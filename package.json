@@ -1,0 +1,17 @@
+{
+  "name": "marketclaw",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": ["server", "web"],
+  "scripts": {
+    "dev": "concurrently -k \"npm run dev -w server\" \"npm run dev -w web\"",
+    "dev:demo": "concurrently -k \"ALLOW_PRIVATE_TARGETS=1 npm run dev -w server\" \"npm run dev -w web\" \"npm run demo:site\"",
+    "demo:site": "node server/src/demo.js",
+    "start": "npm run start -w server",
+    "build": "npm run build -w web",
+    "test": "npm run build && node --test server/test/*.test.js"
+  },
+  "devDependencies": {"concurrently": "^9.1.2"},
+  "engines": {"node": ">=20"}
+}
