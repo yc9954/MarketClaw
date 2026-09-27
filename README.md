@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/assets/marketclaw-lobster.png" alt="MarketClaw lobster mascot with Genspark laptop" width="560" />
+  <img src="docs/assets/marketclaw-lobster.png" alt="MarketClaw lobster mascot with Genspark laptop" width="180" />
 
   # MarketClaw
 
