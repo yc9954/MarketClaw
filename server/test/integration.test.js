@@ -50,11 +50,21 @@ test('local demo: capture, replay, findings and screenshot', { timeout: 90000 },
       const pageErrors = []
       page.on('pageerror', err => pageErrors.push(err.message))
       await page.goto(apiUrl)
+      assert.equal(await page.locator('.left-col').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(0, 0, 0)')
+      assert.equal(await page.locator('.right-col').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(255, 255, 255)')
       await page.locator('.run-row').first().waitFor()
       await page.locator('.run-row').first().click()
       await page.getByText('발견한 개선 지점').waitFor()
+      assert.equal(await page.locator('.sidebar').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(0, 0, 0)')
       assert.deepEqual(pageErrors, [])
       assert.match(await page.locator('.metric-grid').innerText(), /4 pages/)
+      await page.goto(apiUrl)
+      await page.locator('#target-url').fill(demoUrl)
+      await page.locator('.start-btn').click()
+      await page.locator('.modal-opt--primary').click()
+      await page.waitForURL(/\/runs\//)
+      await page.getByText('발견한 개선 지점').waitFor({ timeout: 30000 })
+      assert.deepEqual(pageErrors, [])
     } finally { await browser.close() }
   } finally {
     await Promise.all([new Promise(resolve => api.close(resolve)), new Promise(resolve => demo.close(resolve))])
