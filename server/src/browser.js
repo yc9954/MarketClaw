@@ -38,7 +38,15 @@ function extractPage() {
     description: document.querySelector('meta[name="description"]')?.content || '',
     h1: [...document.querySelectorAll('h1')].map(text).filter(Boolean).slice(0, 5),
     headings: [...document.querySelectorAll('h2')].map(text).filter(Boolean).slice(0, 10),
-    ctas: [...document.querySelectorAll('a,button')].filter(el => visible(el) && !el.closest('nav') && (el.tagName === 'BUTTON' || /(^|\s)(btn|button|cta|primary)(\s|$)/i.test(el.className || '') || /start|try|demo|contact|pricing|시작|체험|문의|가격/i.test(text(el)))).map(el => ({ text: text(el), href: el instanceof HTMLAnchorElement ? el.href : '', aboveFold: el.getBoundingClientRect().top < innerHeight })).filter(x => x.text).slice(0, 30),
+    ctas: [...document.querySelectorAll('a,button,textarea,[contenteditable="true"]')]
+      .filter(el => visible(el) && !el.closest('nav') && (
+        ((el.tagName === 'TEXTAREA' || el.getAttribute('contenteditable') === 'true') && !el.closest('form')) ||
+        el.tagName === 'BUTTON' ||
+        /(^|\s)(btn|button|cta|primary)(\s|$)/i.test(el.className || '') ||
+        /start|try|demo|contact|pricing|시작|체험|문의|가격/i.test(text(el))
+      ))
+      .map(el => ({ text: text(el) || el.getAttribute('placeholder') || el.getAttribute('aria-label') || '', href: el instanceof HTMLAnchorElement ? el.href : '', aboveFold: el.getBoundingClientRect().top < innerHeight }))
+      .filter(x => x.text).slice(0, 30),
     links: [...document.querySelectorAll('a[href]')].filter(visible).map(el => ({ text: text(el), url: el.href })).filter(x => x.text).slice(0, 60),
     forms: [...document.forms].map(f => ({ action: f.action, fields: f.querySelectorAll('input:not([type="hidden"]),select,textarea').length })),
     viewport: { width: innerWidth, height: innerHeight }
@@ -47,7 +55,7 @@ function extractPage() {
 
 async function launchBrowser() {
   const channel = process.env.BROWSER_CHANNEL
-  return chromium.launch({ headless: true, ...(channel ? { channel } : {}) })
+  return chromium.launch({ headless: process.env.BROWSER_HEADLESS !== '0', ...(channel ? { channel } : {}) })
 }
 
 export async function inspect(target, runDir, onEvent = () => {}) {
@@ -85,7 +93,8 @@ export async function inspect(target, runDir, onEvent = () => {}) {
       const page = await context.newPage()
       try {
         const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 })
-        await page.waitForTimeout(450)
+        const settleMs = Math.max(0, Math.min(10000, Number(process.env.PAGE_SETTLE_MS) || 750))
+        await page.waitForTimeout(settleMs)
         const finalUrl = page.url()
         if (new URL(finalUrl).origin !== origin) throw new Error('다른 도메인으로 이동했습니다.')
         const detail = await page.evaluate(extractPage)
