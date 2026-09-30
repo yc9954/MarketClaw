@@ -5,7 +5,7 @@ import path from 'node:path'
 import fs from 'node:fs/promises'
 import { analyzeRun } from './analyze.js'
 
-const trackerHosts = ['google-analytics.com', 'googletagmanager.com', 'doubleclick.net', 'facebook.net', 'connect.facebook.net', 'hotjar.com', 'clarity.ms', 'segment.io', 'mixpanel.com']
+export const trackerHosts = ['google-analytics.com', 'googletagmanager.com', 'doubleclick.net', 'facebook.net', 'connect.facebook.net', 'hotjar.com', 'clarity.ms', 'segment.io', 'mixpanel.com']
 const trackingParams = /^(utm_|gclid$|fbclid$|msclkid$|mc_cid$|mc_eid$)/i
 const privateV4 = ip => {
   const [a, b, c] = ip.split('.').map(Number)
