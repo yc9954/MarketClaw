@@ -143,7 +143,9 @@ export function simulatePropagation(sessions, variants, { rounds = 3, seed = 1 }
   return { rounds, results }
 }
 
-export function buildReport(sessions, variants, { seed = 1 } = {}) {
+// `loop` is the feedback-loop result from propagation.js (rounds, base visit probabilities, segment
+// deltas); with a single round it still carries one entry so the UI has one shape to render.
+export function buildReport(sessions, variants, { seed = 1, loop = null } = {}) {
   const byVariant = aggregateByVariant(sessions, variants)
   const list = Object.values(byVariant)
   const best = list.slice().sort((a, b) => b.cvr - a.cvr || b.avgEngagement - a.avgEngagement)[0] || null
@@ -164,6 +166,10 @@ export function buildReport(sessions, variants, { seed = 1 } = {}) {
     comparisons: compareVariants(byVariant),
     dropoffMap: buildDropoffMap(sessions),
     segments: Object.values(segments).sort((a, b) => b.n - a.n),
-    propagation: simulatePropagation(sessions, variants, { seed })
+    propagation: simulatePropagation(sessions, variants, { seed }),
+    rounds: loop?.rounds || [],
+    baseVisitProb: loop?.baseVisitProb || {},
+    segmentDeltaPct: loop?.segmentDeltaPct || {},
+    peerStats: loop?.peerStats || null
   }
 }
