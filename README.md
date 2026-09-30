@@ -94,6 +94,33 @@ This is the public Genspark workspace as captured by MarketClaw in a separate, s
 
 ---
 
+## Where MarketClaw came from: the multi-agent persona simulation
+
+MarketClaw is the evidence half of a larger prototype. The first version, built on [MiroFish](https://github.com/666ghj/MiroFish), simulated a website's visitors as a **population of persona agents**: a persona pool sampled from NVIDIA's Nemotron-Personas-Korea by site-matched archetype, a probabilistic behaviour model per persona, parallel Playwright agents browsing the real site while one is spotlighted in headed mode, and a dashboard that compared design variants across all sessions with Fisher's exact test. That simulation stage is what these captures show.
+
+<table>
+<tr>
+<td width="50%"><img src="docs/screenshots/legacy/persona-ab-simulation.png" alt="Persona agent simulation: five persona types evaluate design A and design B at the same time, with live delta and a 95% confidence interval" width="100%" /></td>
+<td width="50%"><img src="docs/screenshots/legacy/agent-eye-view.png" alt="Agent's eye view: one brand-marketer persona browsing the real sweetspot.co.kr homepage in headed mode while three other personas run in parallel headless" width="100%" /></td>
+</tr>
+<tr>
+<td valign="top"><sub><strong>Persona × design simulation.</strong> Five persona types (price-sensitive, fast buyer, researcher, bouncer, comparer) walk two designs of the same funnel at once; visits, conversions and drop-offs accumulate per design with a live delta and confidence interval.</sub></td>
+<td valign="top"><sub><strong>Agent's eye view.</strong> One persona is spotlighted in a headed browser on the real site while the rest of the population runs headless; the panel on the right lists the concurrently active agents and streams the spotlighted agent's inner monologue.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/screenshots/legacy/oasis-site-graph.png" alt="OASIS-based site simulation: the site's page graph with per-page visitor counts, five persona segments with their shares, live KPIs and per-persona conversion" width="100%" /></td>
+<td width="50%"><img src="docs/screenshots/legacy/oasis-marketing-dashboard.png" alt="OASIS Marketing Dashboard: 96 sessions across four variants and six segments, weighted conversion per variant, Fisher's exact test against control, and a page drop-off map" width="100%" /></td>
+</tr>
+<tr>
+<td valign="top"><sub><strong>Site graph simulation.</strong> The real page structure as a graph, a persona mix (brand marketer 40%, property owner 10%, content explorer 25%, job seeker 5%, casual 20%), and OASIS modules for time, memory, agents and recommendation with live KPIs per persona.</sub></td>
+<td valign="top"><sub><strong>Variant dashboard.</strong> Sessions from the whole population are aggregated per variant and segment: weighted conversion, bounce, engagement, steps, time to convert, lift against control with a p-value, and a drop-off map per route.</sub></td>
+</tr>
+</table>
+
+**That stage is not in this repository.** The persona pool, the OASIS-based engine and the variant dashboard live in the earlier MiroFish-based prototype, which was never published. MarketClaw was rebuilt around the part that produces verifiable evidence: a real browser, a HAR, a screenshot and rule-based findings. The captures above were rendered from the prototype's standalone pages for this page; the simulation counters read zero because they show the initial state, and the dashboard numbers come from one recorded run against sweetspot.co.kr.
+
+---
+
 ## How it works
 
 ```text
@@ -226,7 +253,7 @@ Check the captured page against the report before acting on a recommendation.
 | `server/test/integration.test.js` | End-to-end test against the demo site. |
 | `web/src/` | Vue app: `views/Home.vue` (URL input, pipeline, recent runs) and `views/Report.vue` (report, capture, replay, feedback tabs). |
 | `demo-site/` | Local fixture for the integration test: `index`, `features`, `pricing`, `contact`. |
-| `docs/screenshots/`, `docs/assets/` | Screenshots from an actual Genspark run; the mascot artwork. |
+| `docs/screenshots/`, `docs/assets/` | Screenshots from an actual Genspark run; `legacy/` holds the persona-simulation captures; the mascot artwork. |
 | `data/runs/` | Local run results (git-ignored). |
 | `.env.example`, `.github/workflows/ci.yml` | Configuration defaults and CI. |
 
@@ -240,7 +267,7 @@ Check the captured page against the report before acting on a recommendation.
 
 **Known limitations.** JavaScript errors, bot protection, login walls and network conditions can make pages or replay paths fail; some sites only load in a visible (`BROWSER_HEADLESS=0`) installed Chrome. CTA and tracker detection are heuristics. The server processes a single run at a time; on start it reloads previous runs from `data/runs/` and marks any that were in progress as `interrupted`.
 
-**Out of scope.** Real-user behaviour, visitor counts, conversion rates or revenue. MarketClaw observes a site and suggests the next experiment; it does not measure outcomes.
+**Out of scope.** Real-user behaviour, visitor counts, conversion rates or revenue. MarketClaw observes a site and suggests the next experiment; it does not measure outcomes. The multi-agent persona simulation shown above is the earlier prototype and is not part of this codebase.
 
 ---
 
