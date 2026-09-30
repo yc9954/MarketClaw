@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="docs/assets/marketclaw-lobster.png" alt="MarketClaw lobster mascot with a Genspark laptop" width="150" />
-</p>
-
 <h1 align="center">MarketClaw</h1>
 
 <p align="center">
@@ -76,29 +72,12 @@ If nothing trips, the report says so, states how many pages were explored and ho
 
 ### Persona simulation
 
-The simulation stage grew out of the MiroFish-based prototype that preceded MarketClaw: a population of persona agents, a behaviour model per persona, parallel Playwright sessions and a variant dashboard with Fisher's exact test. It is now part of this repository, rewritten as ES modules under `server/src/simulation/` and generalized so it runs against **any captured site**, not one hard-coded target.
-
-Details, endpoints and limits are in [Persona simulation](#persona-simulation) below.
-
-</td>
-<td width="50%">
-  <img src="docs/screenshots/simulation-setup.png" alt="Persona simulation setup: the pool summary with ten segment chips, the run form with persona count, max steps, seed, step capture toggle and the variant checklist" width="100%" />
-</td>
-</tr>
-</table>
-
----
-
-## Persona simulation
-
-<p align="center">
-  <img src="docs/screenshots/simulation-results.png" alt="Simulation results: four variant cards with weighted conversion, bounce, goal reached and engagement, the Fisher's exact table, the drop-off map and the segment by variant table" width="960" />
-</p>
+The captures on this page come from the same Genspark run as the report above: 20 personas × 4 variants, heuristic policy, seed `20260930`, goals `genspark-claw|claw|agents|signup|login|start`. Four of the 80 sessions converted and 42 bounced, which is what a cold B2B population does on a product homepage; the point is the comparison between variants, not the absolute rate.
 
 <table>
 <tr>
-<td width="50%"><img src="docs/screenshots/simulation-setup.png" alt="Persona simulation setup form and segment chips" width="100%" /></td>
-<td width="50%"><img src="docs/screenshots/simulation-session.png" alt="Sessions list next to one session's agent's-eye view with numbered steps and the captured viewport" width="100%" /></td>
+<td width="50%"><img src="docs/screenshots/simulation-setup.png" alt="Persona simulation setup for www.genspark.ai: the pool summary with ten segment chips and the run form with persona count, max steps, seed, step capture and the variant checklist" width="100%" /></td>
+<td width="50%"><img src="docs/screenshots/simulation-session.png" alt="Sessions list next to one session's agent's-eye view on www.genspark.ai: persona description, visited path, and numbered steps with action, reason, sentiment and the captured viewport" width="100%" /></td>
 </tr>
 <tr>
 <td valign="top"><sub><strong>Setup.</strong> Segment chips show each segment's size and share; pick some to restrict the population or none to sample the whole pool by weight. The policy pill says whether an LLM key is configured. Control is always included.</sub></td>
@@ -302,7 +281,7 @@ Check the captured page against the report before acting on a recommendation.
 | `server/test/integration.test.js`, `server/test/simulation.test.js` | End-to-end test against the demo site; unit and API tests for the simulation. |
 | `web/src/` | Vue app: `views/Home.vue` (URL input, pipeline, recent runs), `views/Report.vue` (report, capture, replay, feedback, simulation tabs) and `views/Simulation.vue` (pool, run form, results, agent's-eye session view). |
 | `demo-site/` | Local fixture for the integration test: `index`, `features`, `pricing`, `contact`. |
-| `docs/screenshots/`, `docs/assets/` | Screenshots from an actual Genspark run and from a demo-site simulation; `legacy/` keeps captures of the pre-MarketClaw prototype; the mascot artwork. |
+| `docs/screenshots/`, `docs/assets/` | Screenshots from one actual Genspark run (capture, report and simulation); `legacy/` keeps captures of the pre-MarketClaw prototype. |
 | `data/runs/` | Local run results (git-ignored). |
 | `.env.example`, `.github/workflows/ci.yml` | Configuration defaults and CI. |
 
@@ -322,6 +301,6 @@ Check the captured page against the report before acting on a recommendation.
 
 ## Credits and license
 
-MarketClaw grew out of an experiment based on [MiroFish](https://github.com/666ghj/MiroFish), with a redesigned scope and implementation. The persona pool is derived from [NVIDIA Nemotron-Personas-Korea](https://huggingface.co/datasets/nvidia/Nemotron-Personas-Korea) (CC BY 4.0); see [`server/data/PERSONAS-SOURCE.md`](server/data/PERSONAS-SOURCE.md). The lobster illustration was created for this project; the Genspark name and mark shown in it belong to their respective owner, and MarketClaw is not an official Genspark or OpenClaw product.
+MarketClaw grew out of an experiment based on [MiroFish](https://github.com/666ghj/MiroFish), with a redesigned scope and implementation. The persona pool is derived from [NVIDIA Nemotron-Personas-Korea](https://huggingface.co/datasets/nvidia/Nemotron-Personas-Korea) (CC BY 4.0); see [`server/data/PERSONAS-SOURCE.md`](server/data/PERSONAS-SOURCE.md). The Genspark name and pages shown in the screenshots belong to their respective owner; MarketClaw is not an official Genspark or OpenClaw product.
 
 Code and documentation are distributed under the [AGPL-3.0](LICENSE).
