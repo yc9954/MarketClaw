@@ -72,6 +72,21 @@ If nothing trips, the report says so, states how many pages were explored and ho
 
 ### Persona simulation
 
+On top of the recording, a population of persona agents browses the captured site under design variants and the report compares them: weighted conversion, bounce, engagement, Fisher's exact test against control and a drop-off map. The simulation never touches the live site and is labelled as simulation, never as measurement.
+
+Details, endpoints and limits are in [Persona simulation](#persona-simulation) below.
+
+</td>
+<td width="50%">
+  <img src="docs/screenshots/simulation-results.png" alt="Simulation results for www.genspark.ai: four variant cards with weighted conversion, bounce, goal reached and engagement, and the Fisher's exact table" width="100%" />
+</td>
+</tr>
+</table>
+
+---
+
+## Persona simulation
+
 The captures on this page come from the same Genspark run as the report above: 20 personas × 4 variants, heuristic policy, seed `20260930`, goals `genspark-claw|claw|agents|signup|login|start`. Four of the 80 sessions converted and 42 bounced, which is what a cold B2B population does on a product homepage; the point is the comparison between variants, not the absolute rate.
 
 <table>
