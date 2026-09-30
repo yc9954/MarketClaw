@@ -32,7 +32,7 @@
 
 The integrated report shows pages inspected, paths replayed, above-the-fold CTAs and tracking requests blocked, next to the landing page as the browser actually saw it and the list of improvement findings.
 
-The report shown here came from a real run against the public [Genspark homepage](https://www.genspark.ai/) on 27 September 2026: four pages inspected, one primary interaction visible in the initial viewport, eight tracker requests blocked, and none of the three preset paths found a matching link in Genspark's workspace interface (0/3), which is not a problem with Genspark. Counts and page content change over time.
+The screenshots on this page are an example run against the public [Genspark homepage](https://www.genspark.ai/); counts and page content change over time.
 
 </td>
 <td width="50%">
@@ -87,7 +87,7 @@ Details, endpoints and limits are in [Persona simulation](#persona-simulation) b
 
 ## Persona simulation
 
-The captures on this page come from the same Genspark run as the report above: 20 personas × 4 variants, heuristic policy, seed `20260930`, goals `genspark-claw|claw|agents|signup|login|start`. Four of the 80 sessions converted and 42 bounced, which is what a cold B2B population does on a product homepage; the point is the comparison between variants, not the absolute rate.
+The captures on this page are an example taken from the same Genspark run as the report screenshots; the numbers in them are simulation output, not measurements of real visitors.
 
 <table>
 <tr>
