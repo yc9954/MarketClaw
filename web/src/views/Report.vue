@@ -27,7 +27,7 @@
           </div>
         </div>
       </div>
-      <div class="sidebar-bottom"><span class="sidebar-language">한국어 ▾</span><span class="sidebar-version">v1.0</span></div>
+      <div class="sidebar-bottom"><span class="sidebar-language">한국어 ▾</span><span class="sidebar-version">v1.2</span></div>
     </aside>
 
     <div class="main-area">
