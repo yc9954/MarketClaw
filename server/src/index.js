@@ -9,11 +9,10 @@ import { poolSummary, loadPool } from './simulation/personas.js'
 import { defaultVariants, publicVariant, validateSavedVariant, SAVED_LIMIT } from './simulation/variants.js'
 import { llmConfig, DEFAULT_GOAL_PATTERN } from './simulation/engine.js'
 import { runSimulation, normalizeParams, publicParams, LIMITS as SIM_LIMITS, GENERATED_POOL_FILE } from './simulation/runner.js'
-import { generatePersonaPool, normalizeGenParams, GEN_LIMITS, nemotronPath } from './simulation/personaGen.js'
+import { generatePersonaPool, normalizeGenParams, GEN_LIMITS, nemotronPath, siteBrief } from './simulation/personaGen.js'
 import { createLiveHub, writeIdleStream } from './simulation/live.js'
 import { loadMirror, serveMirror, invalidateMirror } from './simulation/mirror.js'
 import { deriveFeedback, refineWithLlm, CATEGORIES as FEEDBACK_CATEGORIES } from './simulation/feedback.js'
-import { siteBrief } from './simulation/personaGen.js'
 
 export const VERSION = '1.2.0'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')

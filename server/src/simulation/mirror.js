@@ -5,7 +5,6 @@
 import path from 'node:path'
 import { loadHarIndex } from './har.js'
 
-const URL_ATTRS = ['href', 'src', 'srcset', 'poster', 'action', 'data-src', 'data-srcset', 'xlink:href']
 const cache = new Map()
 const MAX_CACHED = 8
 
