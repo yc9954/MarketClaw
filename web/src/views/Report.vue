@@ -10,7 +10,7 @@
         <div class="target-meta">{{ run ? 'RUN ' + run.id.slice(0, 8).toUpperCase() : '브라우저 분석' }}</div>
       </div>
       <nav class="sidebar-nav">
-        <div class="nav-section-label">PIPELINE · 6 STEPS</div>
+        <div class="nav-section-label">PIPELINE · 7 STEPS</div>
         <button v-for="(tab, i) in tabs" :key="tab.id" class="nav-item" :class="{ active: currentTab === tab.id, done: run?.status === 'completed' }" @click="currentTab = tab.id">
           <span class="step-num">{{ String(i).padStart(2, '0') }}</span>
           <component :is="tab.icon" class="nav-icon" :size="15" weight="regular" />
@@ -40,7 +40,7 @@
       </div>
       <div class="sub-tabs">
         <button v-for="sub in quickTabs" :key="sub.id" class="sub-tab" :class="{ active: currentTab === sub.id }" @click="currentTab = sub.id"><component :is="sub.icon" :size="13" weight="regular" /><span>{{ sub.label }}</span></button>
-        <div class="sub-tab-spacer"></div><span class="sub-tab-hint">캡처 → 경로 재생 → 근거 확인</span>
+        <div class="sub-tab-spacer"></div><span class="sub-tab-hint">캡처 → 경로 재생 → 근거 확인 → 페르소나 시뮬레이션</span>
       </div>
       <div class="panel-body">
         <div class="work-panel">
@@ -80,6 +80,7 @@
                 <div class="section-tag">STEP 02 · OFFLINE REPLAY</div><h3>방문자 경로 재생</h3><p class="detail-intro">저장된 HAR에서 읽기 전용 이동을 확인했습니다. 폼 제출은 수행하지 않습니다.</p><div class="journey-grid"><div v-for="journey in run.report.journeys" :key="journey.profile" class="detail-card journey-card"><div class="journey-title"><strong>{{ journey.profile }}</strong><span>{{ journey.success ? '경로 확인' : '확인 필요' }}</span></div><div v-for="(step, i) in journey.steps" :key="i" class="journey-step"><b>{{ i + 1 }}</b><div><strong>{{ step.title || '제목 없음' }}</strong><small>{{ step.url }}</small></div></div><p v-if="journey.note">{{ journey.note }}</p></div></div>
               </section>
               <section v-else-if="currentTab === 'log'" class="detail-panel"><div class="section-tag">STEP 04 · ACTIVITY LOG</div><h3>실행 기록</h3><div class="detail-card event-feed"><div v-for="(event, i) in run.events" :key="i"><time>{{ time(event.at) }}</time><span>{{ event.message }}</span></div></div></section>
+              <section v-else-if="currentTab === 'simulation'" class="detail-panel"><Simulation :run-id="run.id" :run="run" /></section>
               <section v-else-if="currentTab === 'feedback'" class="detail-panel"><div class="section-tag">STEP 05 · FEEDBACK</div><h3>발견한 개선 지점</h3><p class="detail-intro">관찰 근거와 실행 가능한 다음 단계를 함께 표시합니다.</p><div v-for="(item, i) in summary.findings" :key="i" class="detail-card feedback-card"><span class="feedback-index">{{ String(i + 1).padStart(2, '0') }}</span><div><span class="feedback-level">{{ item.level === 'high' ? '우선 확인' : item.level === 'medium' ? '개선 기회' : '확인 결과' }}</span><h4>{{ item.title }}</h4><p><b>근거</b> {{ item.evidence }}</p><p><b>제안</b> {{ item.action }}</p></div></div></section>
             </template>
           </template>
@@ -92,7 +93,8 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { PhGlobe, PhRecord, PhUsersThree, PhTerminal, PhRobot, PhChartBar } from '@phosphor-icons/vue'
+import { PhGlobe, PhRecord, PhUsersThree, PhUsersFour, PhTerminal, PhRobot, PhChartBar } from '@phosphor-icons/vue'
+import Simulation from './Simulation.vue'
 const props = defineProps({ id: String })
 const router = useRouter()
 const run = ref(null)
@@ -106,12 +108,14 @@ const tabs = [
   { id: 'report', title: '통합 리포트', desc: '수집 결과 · 핵심 지표', breadcrumb: 'Report', icon: PhChartBar },
   { id: 'log', title: '실시간 로그', desc: '탐색 · 재생 이벤트', breadcrumb: 'Activity', icon: PhTerminal },
   { id: 'feedback', title: '개선 피드백', desc: '근거 기반 제안', breadcrumb: 'Feedback', icon: PhRobot },
+  { id: 'simulation', title: '페르소나 시뮬레이션', desc: '가상 방문자 · 변형 비교', breadcrumb: 'Simulation', icon: PhUsersFour },
 ]
 const quickTabs = [
   { id: 'report', label: '통합 리포트', icon: PhChartBar },
   { id: 'capture', label: '화면 캡처', icon: PhRecord },
   { id: 'replay', label: '경로 재생', icon: PhUsersThree },
   { id: 'feedback', label: '개선안', icon: PhRobot },
+  { id: 'simulation', label: '페르소나 시뮬레이션', icon: PhUsersFour },
 ]
 const activeTab = computed(() => tabs.find(tab => tab.id === currentTab.value) || tabs[3])
 const stepIndex = computed(() => Math.max(0, tabs.findIndex(tab => tab.id === currentTab.value)))
