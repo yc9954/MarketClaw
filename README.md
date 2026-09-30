@@ -16,7 +16,8 @@
   <strong>Make your next marketing decision with evidence, not guesses.</strong><br/>
   MarketClaw is a locally run web app that opens a real website in Playwright Chromium, records a HAR and a full-page<br/>
   screenshot, replays three visitor paths from that recording, and turns what it observed into a report of findings,<br/>
-  each with the evidence behind it and a suggested next action. It never invents conversion rates or revenue.
+  each with the evidence behind it and a suggested next action. On top of that recording it can run a population of<br/>
+  persona agents against design variants and compare them, clearly labelled as simulation, never as measurement.
 </p>
 
 <h3 align="center"><a href="#getting-started"><ins>Getting started</ins></a></h3>
@@ -73,51 +74,57 @@ If nothing trips, the report says so, states how many pages were explored and ho
 <tr>
 <td width="50%" valign="middle">
 
-### The page as the browser saw it
+### Persona simulation
 
-This is the public Genspark workspace as captured by MarketClaw in a separate, signed-out browser session: an observed screenshot of the official site, not a recreated page or a mockup. Every run keeps its own full-page PNG next to the HAR.
-
-</td>
-<td width="50%">
-  <img src="docs/screenshots/genspark-site.png" alt="The Genspark AI workspace landing page as captured by MarketClaw" width="100%" />
-</td>
-</tr>
-</table>
-
-**Also included**
-
-- **Read-only path replay.** Three visitor purposes (first-time visitor, pricing evaluator, someone about to contact the business) are replayed from the recorded HAR in a fresh browser context. No forms are submitted, no accounts created, no purchases made.
-- **Tracker blocking and URL cleaning.** Requests to a built-in list of analytics and advertising domains are blocked, and common tracking query parameters are stripped before capture.
-- **Local evidence store.** Every run writes its JSON result, PNG and HAR to `data/runs/<run id>/` (git-ignored). Runs reopen from the home screen.
-- **A local fixture site.** `demo-site/` is a small Fieldnote landing site (home, features, pricing, contact) that the integration test runs against, so CI is repeatable without touching a live site.
-- **Korean UI.** All screens, findings and progress messages are written in Korean; the language badge in the header is display-only.
-
----
-
-## Where MarketClaw came from: the multi-agent persona simulation
-
-MarketClaw is the evidence half of a larger prototype. The first version, built on [MiroFish](https://github.com/666ghj/MiroFish), simulated a website's visitors as a **population of persona agents**: a persona pool sampled from NVIDIA's Nemotron-Personas-Korea by site-matched archetype, a probabilistic behaviour model per persona, parallel Playwright agents browsing the real site while one is spotlighted in headed mode, and a dashboard that compared design variants across all sessions with Fisher's exact test. That simulation stage is what these captures show.
+The simulation stage grew out of the MiroFish-based prototype that preceded MarketClaw: a population of persona agents, a behaviour model per persona, parallel Playwright sessions and a variant dashboard with Fisher's exact test. It is now part of this repository, rewritten as ES modules under `server/src/simulation/` and generalized so it runs against **any captured site**, not one hard-coded target.
 
 <table>
 <tr>
-<td width="50%"><img src="docs/screenshots/legacy/persona-ab-simulation.png" alt="Persona agent simulation: five persona types evaluate design A and design B at the same time, with live delta and a 95% confidence interval" width="100%" /></td>
-<td width="50%"><img src="docs/screenshots/legacy/agent-eye-view.png" alt="Agent's eye view: one brand-marketer persona browsing the real sweetspot.co.kr homepage in headed mode while three other personas run in parallel headless" width="100%" /></td>
+<td width="50%"><img src="docs/screenshots/simulation-setup.png" alt="Persona simulation setup: the pool summary with ten segment chips, the run form with persona count, max steps, seed, step capture toggle and the variant checklist" width="100%" /></td>
+<td width="50%"><img src="docs/screenshots/simulation-session.png" alt="Sessions list next to one session's agent's-eye view: persona description, visited path, and numbered steps with action, target, reason, sentiment and the captured viewport" width="100%" /></td>
 </tr>
 <tr>
-<td valign="top"><sub><strong>Persona × design simulation.</strong> Five persona types (price-sensitive, fast buyer, researcher, bouncer, comparer) walk two designs of the same funnel at once; visits, conversions and drop-offs accumulate per design with a live delta and confidence interval.</sub></td>
-<td valign="top"><sub><strong>Agent's eye view.</strong> One persona is spotlighted in a headed browser on the real site while the rest of the population runs headless; the panel on the right lists the concurrently active agents and streams the spotlighted agent's inner monologue.</sub></td>
-</tr>
-<tr>
-<td width="50%"><img src="docs/screenshots/legacy/oasis-site-graph.png" alt="OASIS-based site simulation: the site's page graph with per-page visitor counts, five persona segments with their shares, live KPIs and per-persona conversion" width="100%" /></td>
-<td width="50%"><img src="docs/screenshots/legacy/oasis-marketing-dashboard.png" alt="OASIS Marketing Dashboard: 96 sessions across four variants and six segments, weighted conversion per variant, Fisher's exact test against control, and a page drop-off map" width="100%" /></td>
-</tr>
-<tr>
-<td valign="top"><sub><strong>Site graph simulation.</strong> The real page structure as a graph, a persona mix (brand marketer 40%, property owner 10%, content explorer 25%, job seeker 5%, casual 20%), and OASIS modules for time, memory, agents and recommendation with live KPIs per persona.</sub></td>
-<td valign="top"><sub><strong>Variant dashboard.</strong> Sessions from the whole population are aggregated per variant and segment: weighted conversion, bounce, engagement, steps, time to convert, lift against control with a p-value, and a drop-off map per route.</sub></td>
+<td valign="top"><sub><strong>Setup.</strong> Segment chips show each segment's size and share; pick some to restrict the population or none to sample the whole pool by weight. The policy pill says whether an LLM key is configured. Control is always included.</sub></td>
+<td valign="top"><sub><strong>Agent's-eye view.</strong> Every step records the action, its target, the page, the persona's reason, sentiment, engagement and simulated elapsed time, and optionally the viewport screenshot. Sessions are listed control first, then each variant in the order requested.</sub></td>
 </tr>
 </table>
 
-**That stage is not in this repository.** The persona pool, the OASIS-based engine and the variant dashboard live in the earlier MiroFish-based prototype, which was never published. MarketClaw was rebuilt around the part that produces verifiable evidence: a real browser, a HAR, a screenshot and rule-based findings. The captures above were rendered from the prototype's standalone pages for this page; the simulation counters read zero because they show the initial state, and the dashboard numbers come from one recorded run against sweetspot.co.kr.
+**What happens when you press start**
+
+1. **Population.** `personas.js` loads `server/data/personas.json` (928 personas in 10 segments, see [provenance](server/data/PERSONAS-SOURCE.md)) and draws `personas` of them: the count is split across the chosen segments in proportion to their weight, then a seeded shuffle picks inside each segment. The same `seed` always yields the same population.
+2. **Variants.** `variants.js` turns each variant into DOM patches (`css`, `text`, `hide`, `inject`, `reorder`) that are applied after every page load. The four defaults are generic and bind to the run's own inventory: `control`, `largeCTA` (enlarges the primary above-the-fold CTA the capture detected), `trustBoost` (a neutral social-proof badge under that CTA, a placeholder you are meant to replace with a real claim), `contactFirst` (a contact bar at the top linking to the contact page found in the capture). Custom variants can be posted as `{ key, name, patches }`; selectors, text and HTML are length-capped and scripts or inline handlers are rejected.
+3. **Shadow browser.** `shadow.js` opens one Playwright context per session and routes it from the run's `capture.har.zip`. Anything the HAR does not contain is answered locally: tracker hosts and foreign origins are aborted, `POST`/`PUT`/`PATCH` to the target origin get a mock `{ ok: true }`, unrecorded documents get a placeholder page. **The live site is never contacted.** An init script intercepts `dataLayer`, `gtag` and `fbq` and records clicks and form submits.
+4. **Agents.** `engine.js` observes the page (text, links, buttons, inputs, social proof) and scores every element's visual salience from fold position, F-pattern quadrant, hierarchy, contrast, Fitts's law, Hick's law and Gestalt cues. The persona then picks one action from a four-layer taxonomy (navigation, DOM, micro-signals like `read`/`dwell`, intent like `bounce`/`save_intent`), and memory tracks sentiment, engagement and information scent per step.
+5. **Goals.** A page counts as a goal page when its path or title matches `contact|pricing|price|plans|signup|estimate|quote|demo|문의|견적|가입|상담|요금|가격|구독|신청`, or the request's own `goals` patterns. A session **converts** when it submits a form or clicks a CTA while already on a goal page; merely reaching a goal page counts as "goal reached", which the report shows separately.
+6. **Report.** `report.js` aggregates weighted conversion and bounce (persona weights), engagement, steps, time-to-convert, a drop-off map per path, Fisher's exact test of each variant against control with relative lift, a segment × variant table, and a small peer-propagation model that estimates a K-factor per variant.
+
+**Decision policy**
+
+| Policy | When | Behaviour |
+| --- | --- | --- |
+| `heuristic` | default, no key needed | Weighted choice over the observed elements: CTA response, patience, copy importance, price consciousness and social-proof sensitivity from the persona, salience from the page, a commitment gate driven by sentiment. Seeded, so a run is reproducible from `seed`. Used in CI. |
+| `llm` | `LLM_API_KEY` is set | Each step asks an OpenAI-compatible chat-completions endpoint (`LLM_BASE_URL`, `LLM_MODEL`) for one JSON action, with the persona, its cognitive profile and the captured page list in the system prompt. A failed call falls back to the heuristic for that step and marks it. |
+
+The policy that ran is stored in every session and in `GET /api/runs/:id/simulation`.
+
+**API**
+
+| Request | Description |
+| --- | --- |
+| `GET /api/personas` | Pool summary (segments with counts and weights, sample personas), default variants, limits and LLM status. |
+| `POST /api/runs/:id/simulation` | Start a simulation for a completed run. Body: `personas` (1–200, default 20), `segments`, `variants` (keys or custom objects), `goals` (path patterns), `concurrency` (1–6), `maxSteps` (2–30), `captureSteps`, `seed`, `policy: "heuristic"` to force the key-free policy. `409` if the run is not completed or a simulation is already running. |
+| `GET /api/runs/:id/simulation` | `status`, `progress { done, total, failed }`, `policy`, `params`, `site`, `report` and session summaries. |
+| `GET /api/runs/:id/simulation/sessions/:sid` | One session's full step log, memory, shadow events and network stats. |
+| `GET /api/runs/:id/simulation/sessions/:sid/steps/:n.png` | The viewport at step `n` when `captureSteps` was on (up to 8 per session). |
+
+Simulations share the API's one-job-at-a-time queue with captures. Results are written to `data/runs/<id>/simulation/` (`sessions/*.json`, `screenshots/<session>/step_NN.png`, `report.json`) and `simulation.json`, so they survive a restart; a simulation interrupted by a restart is marked `interrupted`.
+
+**Limits, stated plainly**
+
+- **Simulated, not measured.** Every conversion rate, bounce rate, lift and p-value describes what persona agents did inside a recording. They are inputs to the next experiment, not evidence about real visitors.
+- **The pool is illustrative.** It was sampled from NVIDIA's Nemotron-Personas-Korea for a Korean B2B pop-up-store agency site; the segments, weights, interest keywords and conversion goals are editorial. Bring your own pool with `PERSONA_POOL_PATH` for a different audience.
+- **Only the recording exists.** Agents can only visit pages the capture recorded (up to `MAX_PAGES`); other links open a placeholder. Form posts are mocked. JavaScript-heavy sites replay only as well as their HAR does.
+- **The heuristic policy is a model of attention, not of people.** It reacts to salience, keywords and a few persona traits. Small populations produce wide swings; Fisher's test reports that honestly with high p-values.
 
 ---
 
@@ -135,6 +142,15 @@ Vue UI (web/) ──POST /api/runs──▶ Express API (server/src/index.js)
                                 └─ offline replay of 3 visitor paths from the HAR
                                      ▼
                               analyze.js  ── rule-based findings ──▶ JSON result ──▶ GET /api/runs/:id ──▶ report view
+                                     │
+                     POST /api/runs/:id/simulation (same queue)
+                                     ▼
+                              simulation/runner.js
+                                ├─ personas.js: seeded, weight-stratified sample of the pool
+                                ├─ shadow.js: one context per session, routed from capture.har.zip only
+                                ├─ variants.js: DOM patches per variant, bound to the run's CTA/contact link
+                                ├─ engine.js: observe → decide (heuristic | llm) → act → memory, per step
+                                └─ report.js: weighted CVR/BR, Fisher's exact, drop-off, segments, K-factor
 ```
 
 1. **Submit.** The home screen posts `{ "url": "https://example.com" }`. Only HTTP(S) URLs are accepted; local and private-network targets are rejected unless `ALLOW_PRIVATE_TARGETS=1`, and cross-origin redirects are treated as errors.
@@ -149,8 +165,13 @@ Vue UI (web/) ──POST /api/runs──▶ Express API (server/src/index.js)
 | `GET /api/runs` | List runs, newest first. |
 | `GET /api/runs/:id` | Progress events and the report. |
 | `GET /api/runs/:id/screenshot` | The landing-page PNG of a completed run. |
+| `GET /api/personas` | Persona pool summary, default variants and LLM status. |
+| `POST /api/runs/:id/simulation` | Start a persona simulation on a completed run. |
+| `GET /api/runs/:id/simulation` | Simulation status, progress, report and session summaries. |
+| `GET /api/runs/:id/simulation/sessions/:sid` | Full step log of one session. |
+| `GET /api/runs/:id/simulation/sessions/:sid/steps/:n.png` | Viewport screenshot at step `n`. |
 
-If the server restarts mid-run, that run is marked `interrupted`; start a new one.
+If the server restarts mid-run, that run is marked `interrupted`; start a new one. The same applies to a simulation.
 
 ---
 
@@ -215,6 +236,12 @@ npm start              # Express serves the built UI and the API on :4000
 | `ALLOW_PRIVATE_TARGETS` | `0` | Allow local and private-network URLs. Only for the local fixture and tests. |
 | `DATA_DIR` | `data/runs` | Where run results are written. |
 | `DEMO_PORT` | `4175` | Bundled demo-site port. |
+| `LLM_API_KEY` | empty | Enables the `llm` decision policy for simulations. Empty means the heuristic policy. |
+| `LLM_BASE_URL` | `https://api.openai.com/v1` | OpenAI-compatible chat-completions base URL (OpenAI, OpenRouter, a local server). |
+| `LLM_MODEL` | `gpt-4o-mini` | Model name sent to that endpoint. |
+| `SIM_CONCURRENCY` | `3` | Parallel browser sessions per simulation (1–6). |
+| `SIM_MAX_STEPS` | `12` | Steps per session (2–30). |
+| `PERSONA_POOL_PATH` | empty | Path to a custom persona pool JSON; empty uses `server/data/personas.json`. |
 
 ---
 
@@ -224,7 +251,7 @@ npm start              # Express serves the built UI and the API on :4000
 npm test               # builds the UI, then node --test server/test/*.test.js
 ```
 
-The integration test starts a local fixture server from `demo-site/` and checks real browser capture, HAR replay, findings, PNG delivery, opening a result from the home screen, and the visual layout. [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs the same test on Node 22 with `BROWSER_CHANNEL=chromium`.
+`integration.test.js` starts a local fixture server from `demo-site/` and checks real browser capture, HAR replay, findings, PNG delivery, opening a result from the home screen, and the visual layout. `simulation.test.js` unit-tests Fisher's exact test against known tables, weighted conversion, seeded persona sampling, variant patches on a static page and goal detection, then captures the demo site and runs a 3-persona × 2-variant simulation through the API with the heuristic policy, checking sessions, report, screenshots, reproducibility of the seed and the simulation tab in the UI. No API key is needed. [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs both on Node 22 with `BROWSER_CHANNEL=chromium`.
 
 ---
 
@@ -237,6 +264,9 @@ The integration test starts a local fixture server from `demo-site/` and checks 
 | Above-the-fold CTAs | Action elements or standalone prompt inputs visible in the initial 1440 × 900 viewport. Heuristic; may not perfectly separate CTAs from navigation. |
 | Tracking requests blocked | Requests matching the built-in analytics/advertising domain list. Not comprehensive tracker detection. |
 | Improvement findings | Rule-based checks of captured page properties and errors, meant to guide the next experiment. |
+| Weighted CVR / bounce (simulation) | Share of persona weight that converted or bounced per variant. Simulated agents, not visitors. |
+| Lift, p-value (simulation) | Relative change of weighted CVR against control and the two-sided Fisher's exact p-value on raw counts. |
+| Goal reached (simulation) | Share of sessions that opened a goal page at all; conversion additionally requires a form submit or a CTA click on that page. |
 
 Check the captured page against the report before acting on a recommendation.
 
@@ -250,10 +280,12 @@ Check the captured page against the report before acting on a recommendation.
 | `server/src/browser.js` | URL checks, Playwright capture (HAR, PNG, page inventory, tracker blocking), offline HAR path replay. |
 | `server/src/analyze.js` | The finding rules. |
 | `server/src/demo.js` | Static server for the bundled demo site. |
-| `server/test/integration.test.js` | End-to-end test against the demo site. |
-| `web/src/` | Vue app: `views/Home.vue` (URL input, pipeline, recent runs) and `views/Report.vue` (report, capture, replay, feedback tabs). |
+| `server/src/simulation/` | Persona simulation: `personas.js` (pool, seeded sampling), `variants.js` (patch engine, default variants, validation), `shadow.js` (HAR-only browser context), `engine.js` (observation, salience, actions, memory, goals, heuristic and LLM policies), `runner.js` (personas × variants with concurrency, session files, screenshots), `report.js` (aggregation, Fisher's exact test, drop-off, segments, propagation), `random.js` (seeded PRNG). |
+| `server/data/personas.json`, `server/data/PERSONAS-SOURCE.md` | The bundled persona pool and where it came from. |
+| `server/test/integration.test.js`, `server/test/simulation.test.js` | End-to-end test against the demo site; unit and API tests for the simulation. |
+| `web/src/` | Vue app: `views/Home.vue` (URL input, pipeline, recent runs), `views/Report.vue` (report, capture, replay, feedback, simulation tabs) and `views/Simulation.vue` (pool, run form, results, agent's-eye session view). |
 | `demo-site/` | Local fixture for the integration test: `index`, `features`, `pricing`, `contact`. |
-| `docs/screenshots/`, `docs/assets/` | Screenshots from an actual Genspark run; `legacy/` holds the persona-simulation captures; the mascot artwork. |
+| `docs/screenshots/`, `docs/assets/` | Screenshots from an actual Genspark run and from a demo-site simulation; `legacy/` keeps captures of the pre-MarketClaw prototype; the mascot artwork. |
 | `data/runs/` | Local run results (git-ignored). |
 | `.env.example`, `.github/workflows/ci.yml` | Configuration defaults and CI. |
 
@@ -261,18 +293,18 @@ Check the captured page against the report before acting on a recommendation.
 
 ## Project status
 
-**Working today.** Everything above: capture, tracker blocking, HAR replay of three paths, rule-based findings, PNG/HAR/JSON storage, run history, the Korean UI, and a CI-backed integration test. Version 1.0.0.
+**Working today.** Everything above: capture, tracker blocking, HAR replay of three paths, rule-based findings, PNG/HAR/JSON storage, run history, the Korean UI, the persona simulation with its heuristic and LLM policies, and CI-backed integration tests. Version 1.1.0.
 
 **Security posture.** The API binds to loopback and has no authentication, rate limiting or access control; add those before exposing it beyond your machine. A HAR can contain response bodies, URLs and sometimes cookies or authorization data from the visited site. MarketClaw uses its own browser context, not your signed-in browser, but keep `data/runs/` private and never commit it.
 
-**Known limitations.** JavaScript errors, bot protection, login walls and network conditions can make pages or replay paths fail; some sites only load in a visible (`BROWSER_HEADLESS=0`) installed Chrome. CTA and tracker detection are heuristics. The server processes a single run at a time; on start it reloads previous runs from `data/runs/` and marks any that were in progress as `interrupted`.
+**Known limitations.** JavaScript errors, bot protection, login walls and network conditions can make pages or replay paths fail; some sites only load in a visible (`BROWSER_HEADLESS=0`) installed Chrome. CTA and tracker detection are heuristics. The server processes a single job (capture or simulation) at a time; on start it reloads previous runs from `data/runs/` and marks any that were in progress as `interrupted`. Simulations only see the pages the capture recorded, their persona pool is illustrative, and their results are simulated (see [Persona simulation](#persona-simulation)).
 
-**Out of scope.** Real-user behaviour, visitor counts, conversion rates or revenue. MarketClaw observes a site and suggests the next experiment; it does not measure outcomes. The multi-agent persona simulation shown above is the earlier prototype and is not part of this codebase.
+**Out of scope.** Real-user behaviour, visitor counts, conversion rates or revenue. MarketClaw observes a site and suggests the next experiment; the persona simulation compares design variants under a model of visitors, and its numbers must not be read as measurements.
 
 ---
 
 ## Credits and license
 
-MarketClaw grew out of an experiment based on [MiroFish](https://github.com/666ghj/MiroFish), with a redesigned scope and implementation. The lobster illustration was created for this project; the Genspark name and mark shown in it belong to their respective owner, and MarketClaw is not an official Genspark or OpenClaw product.
+MarketClaw grew out of an experiment based on [MiroFish](https://github.com/666ghj/MiroFish), with a redesigned scope and implementation. The persona pool is derived from [NVIDIA Nemotron-Personas-Korea](https://huggingface.co/datasets/nvidia/Nemotron-Personas-Korea) (CC BY 4.0); see [`server/data/PERSONAS-SOURCE.md`](server/data/PERSONAS-SOURCE.md). The lobster illustration was created for this project; the Genspark name and mark shown in it belong to their respective owner, and MarketClaw is not an official Genspark or OpenClaw product.
 
 Code and documentation are distributed under the [AGPL-3.0](LICENSE).
