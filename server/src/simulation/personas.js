@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { seededRandom } from './random.js'
 
 const defaultPoolPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../data/personas.json')
-let cache = null
+const cache = new Map() // file → { mtimeMs, pool }; generated pools are rewritten in place, so the mtime is checked
 
 function normalizePersona(p, index) {
   const goals = p.goals || {}
@@ -24,14 +24,18 @@ function normalizePersona(p, index) {
       conversion: String(goals.conversion || p.conversionGoal || ''),
       interests: (goals.interests || p.interestKeywords || []).map(String),
       avoid: (goals.avoid || p.avoidKeywords || []).map(String)
-    }
+    },
+    ...(p.archetype ? { archetype: String(p.archetype) } : {}),
+    ...(p.priors ? { priors: p.priors } : {})
   }
 }
 
 export function poolPath() { return process.env.PERSONA_POOL_PATH || defaultPoolPath }
 
 export function loadPool(file = poolPath()) {
-  if (cache?.file === file) return cache.pool
+  const mtimeMs = fs.statSync(file).mtimeMs
+  const hit = cache.get(file)
+  if (hit && hit.mtimeMs === mtimeMs) return hit.pool
   const raw = JSON.parse(fs.readFileSync(file, 'utf8'))
   const list = Array.isArray(raw) ? raw : Array.isArray(raw.personas) ? raw.personas : Object.values(raw)
   const personas = list.map(normalizePersona)
@@ -46,8 +50,9 @@ export function loadPool(file = poolPath()) {
   }
   const totalWeight = personas.reduce((sum, p) => sum + p.weight, 0)
   const segments = [...bySegment.values()].map(s => ({ ...s, weight: +s.weight.toFixed(3), share: +(s.weight / totalWeight).toFixed(4) })).sort((a, b) => b.weight - a.weight)
-  cache = { file, pool: { source: raw.source || '', file, segments, personas, totalWeight } }
-  return cache.pool
+  const pool = { source: raw.source || '', file, segments, personas, totalWeight, generated: !!raw.archetypes, generatedAt: raw.generatedAt || null }
+  cache.set(file, { mtimeMs, pool })
+  return pool
 }
 
 export function poolSummary(file) {
