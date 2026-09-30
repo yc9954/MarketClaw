@@ -78,10 +78,27 @@ If nothing trips, the report says so, states how many pages were explored and ho
 
 The simulation stage grew out of the MiroFish-based prototype that preceded MarketClaw: a population of persona agents, a behaviour model per persona, parallel Playwright sessions and a variant dashboard with Fisher's exact test. It is now part of this repository, rewritten as ES modules under `server/src/simulation/` and generalized so it runs against **any captured site**, not one hard-coded target.
 
+Details, endpoints and limits are in [Persona simulation](#persona-simulation) below.
+
+</td>
+<td width="50%">
+  <img src="docs/screenshots/simulation-setup.png" alt="Persona simulation setup: the pool summary with ten segment chips, the run form with persona count, max steps, seed, step capture toggle and the variant checklist" width="100%" />
+</td>
+</tr>
+</table>
+
+---
+
+## Persona simulation
+
+<p align="center">
+  <img src="docs/screenshots/simulation-results.png" alt="Simulation results: four variant cards with weighted conversion, bounce, goal reached and engagement, the Fisher's exact table, the drop-off map and the segment by variant table" width="960" />
+</p>
+
 <table>
 <tr>
-<td width="50%"><img src="docs/screenshots/simulation-setup.png" alt="Persona simulation setup: the pool summary with ten segment chips, the run form with persona count, max steps, seed, step capture toggle and the variant checklist" width="100%" /></td>
-<td width="50%"><img src="docs/screenshots/simulation-session.png" alt="Sessions list next to one session's agent's-eye view: persona description, visited path, and numbered steps with action, target, reason, sentiment and the captured viewport" width="100%" /></td>
+<td width="50%"><img src="docs/screenshots/simulation-setup.png" alt="Persona simulation setup form and segment chips" width="100%" /></td>
+<td width="50%"><img src="docs/screenshots/simulation-session.png" alt="Sessions list next to one session's agent's-eye view with numbered steps and the captured viewport" width="100%" /></td>
 </tr>
 <tr>
 <td valign="top"><sub><strong>Setup.</strong> Segment chips show each segment's size and share; pick some to restrict the population or none to sample the whole pool by weight. The policy pill says whether an LLM key is configured. Control is always included.</sub></td>
