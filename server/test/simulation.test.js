@@ -130,7 +130,7 @@ test('demo site: capture, then a small persona simulation through the API', { ti
     const sim = await poll(`/api/runs/${run.id}/simulation`, s => ['completed', 'failed'].includes(s.status))
     assert.equal(sim.status, 'completed', sim.error)
     assert.equal(sim.policy, 'heuristic')
-    assert.deepEqual(sim.progress, { done: 6, total: 6, failed: 0 })
+    assert.deepEqual(sim.progress, { done: 6, total: 6, failed: 0, round: 1, rounds: 1 })
     assert.equal(sim.sessions.length, 6)
     assert.equal(new Set(sim.sessions.map(s => s.persona.id)).size, 3)
     assert.ok(sim.sessions.every(s => s.policy === 'heuristic' && s.summary.totalSteps >= 1 && s.summary.totalSteps <= 8 && !('steps' in s)))
