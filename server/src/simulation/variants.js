@@ -64,15 +64,17 @@ export function validateCustomVariant(v) {
   }
 }
 
-// requested: array of default keys and/or custom variant objects. Control is always included.
-export function resolveVariants(requested) {
+// requested: array of default keys, keys of variants saved on the run (mirror editor), and/or custom
+// variant objects. Control is always included.
+export function resolveVariants(requested, saved = {}) {
   const list = Array.isArray(requested) && requested.length ? requested : ['control', 'largeCTA', 'trustBoost', 'contactFirst']
   if (list.length > LIMITS.variants) throw new Error(`변형은 최대 ${LIMITS.variants}개까지 지정할 수 있습니다.`)
   const out = new Map()
   for (const item of list) {
     if (typeof item === 'string') {
-      if (!defaultVariants[item]) throw new Error(`알 수 없는 변형: ${item}`)
-      out.set(item, { ...defaultVariants[item] })
+      if (defaultVariants[item]) out.set(item, { ...defaultVariants[item] })
+      else if (saved[item]) out.set(item, { ...saved[item], custom: true, saved: true })
+      else throw new Error(`알 수 없는 변형: ${item}`)
     } else {
       const v = validateCustomVariant(item)
       if (defaultVariants[v.key]) throw new Error(`변형 key ${v.key}는 기본 변형과 겹칩니다.`)
@@ -133,4 +135,14 @@ export async function applyVariant(page, variant, site = {}) {
   return applied
 }
 
-export function publicVariant(v) { return { key: v.key, name: v.name, description: v.description, color: v.color, custom: !!v.custom, patches: v.patches.length } }
+export function publicVariant(v) { return { key: v.key, name: v.name, description: v.description, color: v.color, custom: !!v.custom, saved: !!v.saved, patches: v.patches.length } }
+
+// Variants saved on a run by the mirror editor: validated like custom variants, key generated when absent.
+export const SAVED_LIMIT = 20
+export function validateSavedVariant(body, existing = {}) {
+  const key = typeof body?.key === 'string' && body.key.trim() ? body.key.trim() : `mirror_${Object.keys(existing).length + 1}`
+  if (defaultVariants[key]) throw new Error(`변형 key ${key}는 기본 변형과 겹칩니다.`)
+  const v = validateCustomVariant({ ...body, key })
+  if (!v.patches.length) throw new Error('저장할 패치가 없습니다.')
+  return { ...v, saved: true, createdAt: new Date().toISOString() }
+}
